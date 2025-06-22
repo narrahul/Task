@@ -5,7 +5,7 @@ import { ProductService } from '../../services/product.service';
 @Component({
   selector: 'app-product-list',
   templateUrl: './product-list.component.html',
-  styleUrls: ['./product-list.component.css']
+  styleUrls: ['./product-list.component.css', './product-list-responsive.css']
 })
 export class ProductListComponent implements OnInit {
   products: Product[] = [];
@@ -26,14 +26,11 @@ export class ProductListComponent implements OnInit {
   }
 
   loadProducts(): void {
-    this.isLoading = true;
     this.productService.getAllProducts().subscribe(
       (data) => {
         this.products = data;
-        this.isLoading = false;
       },
       (error) => {
-        this.isLoading = false;
         // Handle error silently or show user-friendly message
       }
     );

@@ -4,6 +4,13 @@
   margin: 0 auto;
 }
 
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+}
+
 .header {
   display: flex;
   justify-content: space-between;
