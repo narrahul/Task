@@ -1,0 +1,96 @@
+<div class="form-wrapper">
+  <h2>{{ product ? 'Edit Product' : 'Add New Product' }}</h2>
+  
+  <div *ngIf="errorMessage" class="error-alert">
+    {{ errorMessage }}
+  </div>
+  
+  <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="sku">SKU *</label>
+      <input 
+        type="text" 
+        id="sku" 
+        formControlName="sku"
+        class="form-control"
+        placeholder="Enter unique SKU"
+        [class.is-invalid]="productForm.get('sku')?.invalid && productForm.get('sku')?.touched">
+      <div class="error-message" *ngIf="productForm.get('sku')?.invalid && productForm.get('sku')?.touched">
+        SKU is required
+      </div>
+      <div class="sku-hint" *ngIf="existingSKUs.length > 0 && !product">
+        <small>Existing SKUs: {{ existingSKUs.join(', ') }}</small>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="name">Product Name *</label>
+      <input 
+        type="text" 
+        id="name" 
+        formControlName="name"
+        class="form-control"
+        [class.is-invalid]="productForm.get('name')?.invalid && productForm.get('name')?.touched">
+      <div class="error-message" *ngIf="productForm.get('name')?.invalid && productForm.get('name')?.touched">
+        Product name is required
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="price">Price (₹) *</label>
+      <input 
+        type="number" 
+        id="price" 
+        formControlName="price"
+        step="1"
+        class="form-control"
+        placeholder="Enter price in Rupees (whole numbers only)"
+        [class.is-invalid]="productForm.get('price')?.invalid && productForm.get('price')?.touched">
+      <div class="error-message" *ngIf="productForm.get('price')?.invalid && productForm.get('price')?.touched">
+        Valid price is required (minimum ₹0)
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="images">Product Images</label>
+      <input 
+        type="file" 
+        id="images" 
+        multiple
+        accept="image/*"
+        (change)="onFileSelect($event)"
+        class="form-control file-input">
+      
+      <div class="images-container" *ngIf="existingImages.length > 0 || imagePreviews.length > 0">
+        <div class="image-section" *ngIf="existingImages.length > 0">
+          <h4>Existing Images</h4>
+          <div class="image-grid">
+            <div class="image-item" *ngFor="let image of existingImages">
+              <img [src]="image" alt="Product image">
+              <button type="button" class="remove-btn" (click)="removeExistingImage(image)">×</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="image-section" *ngIf="imagePreviews.length > 0">
+          <h4>New Images</h4>
+          <div class="image-grid">
+            <div class="image-item" *ngFor="let preview of imagePreviews; let i = index">
+              <img [src]="preview" alt="New image">
+              <button type="button" class="remove-btn" (click)="removeNewImage(i)">×</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="productForm.invalid || isSubmitting">
+        {{ isSubmitting ? 'Saving...' : (product ? 'Update' : 'Create') }}
+      </button>
+      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSubmitting">
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>

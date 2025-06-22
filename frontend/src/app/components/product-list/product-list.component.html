@@ -1,0 +1,81 @@
+<div class="container">
+  <div class="header">
+    <h1>Product Management</h1>
+    <button class="btn btn-primary" (click)="addProduct()">Add New Product</button>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="showSuccess" class="success-alert">
+    {{ successMessage }}
+  </div>
+
+  <!-- Product Form Modal -->
+  <div *ngIf="showForm" class="form-modal-overlay">
+    <div class="form-modal-content">
+      <app-product-form 
+        [product]="selectedProduct" 
+        (close)="onFormClose()">
+      </app-product-form>
+    </div>
+  </div>
+
+  <div class="product-table">
+    <table>
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Images</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let product of products">
+          <td>{{ product.sku }}</td>
+          <td>{{ product.name }}</td>
+          <td>₹{{ product.price | number:'1.0-0' }}</td>
+          <td>
+            <div class="image-preview" (click)="openImageModal(product.images)" style="cursor: pointer;">
+              <img *ngFor="let image of product.images.slice(0, 3)" 
+                   [src]="image" 
+                   alt="Product image"
+                   class="thumbnail">
+              <span *ngIf="product.images.length > 3" class="more-images">
+                +{{ product.images.length - 3 }} more
+              </span>
+              <span *ngIf="product.images.length === 0" class="no-images">No images</span>
+            </div>
+          </td>
+          <td>
+            <button class="btn btn-secondary" (click)="editProduct(product)">Edit</button>
+            <button class="btn btn-danger" (click)="deleteProduct(product.id!)">Delete</button>
+          </td>
+        </tr>
+        <tr *ngIf="products.length === 0">
+          <td colspan="5" class="no-data">No products found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Image Modal -->
+  <div *ngIf="showImageModal" class="modal-overlay" (click)="closeImageModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="closeImageModal()">×</button>
+      
+      <div class="modal-image-container" *ngIf="modalImages.length > 0">
+        <img [src]="modalImages[currentImageIndex]" alt="Product image">
+        
+        <div class="modal-navigation" *ngIf="modalImages.length > 1">
+          <button class="nav-btn prev" (click)="previousImage()" [disabled]="currentImageIndex === 0">‹</button>
+          <button class="nav-btn next" (click)="nextImage()" [disabled]="currentImageIndex === modalImages.length - 1">›</button>
+        </div>
+        
+        <div class="image-counter">
+          {{ currentImageIndex + 1 }} / {{ modalImages.length }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
