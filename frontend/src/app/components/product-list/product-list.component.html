@@ -38,7 +38,7 @@
           <td>
             <div class="image-preview" (click)="openImageModal(product.images)" style="cursor: pointer;">
               <img *ngFor="let image of product.images.slice(0, 3)" 
-                   [src]="image + '?width=150&height=150'" 
+                   [src]="image" 
                    alt="Product image"
                    class="thumbnail"
                    loading="lazy">
