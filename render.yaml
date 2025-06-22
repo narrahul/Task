@@ -3,8 +3,9 @@ services:
   - type: web
     name: ecommerce-api
     runtime: node
-    buildCommand: cd backend && npm install && npm run build
-    startCommand: cd backend && npm start
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -34,8 +35,9 @@ services:
   # Frontend Static Site
   - type: static
     name: ecommerce-frontend
-    buildCommand: cd frontend && npm install --force && npm run build
-    staticPublishPath: frontend/dist/ecommerce-admin
+    rootDir: frontend
+    buildCommand: npm install --force && npm run build
+    staticPublishPath: dist/ecommerce-admin
     headers:
       - path: /*
         name: X-Frame-Options

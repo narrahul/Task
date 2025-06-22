@@ -39,7 +39,7 @@ A full-stack e-commerce admin panel for product management built with Angular an
 1. **Clone the repository**
 ```bash
 git clone https://github.com/narrahul/Task.git
-cd Task/ecommerce-admin-panel
+cd Task
 ```
 
 2. **Setup Backend**
