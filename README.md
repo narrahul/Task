@@ -173,38 +173,11 @@ ecommerce-admin-panel/
 - Real-time validation
 - Duplicate SKU prevention
 
-## Common Issues
 
-### Backend Issues
-
-**Error: "SASL: SCRAM-SERVER-FINAL-MESSAGE"**
-- Check database password is correct
-- Ensure no special characters in password or properly encode them
-
-**Error: "self-signed certificate"**
-- This is handled automatically in development
-- For production, configure proper SSL certificates
-
-### Frontend Issues
-
-**Error: "digital envelope routines::unsupported"**
-- Use the NODE_OPTIONS environment variable as shown in setup
 
 **ng command not found**
 - Run `npm start` instead of `ng serve`
 
-## Production Deployment
-
-### Backend
-1. Set `NODE_ENV=production`
-2. Use process manager like PM2
-3. Configure proper SSL certificates
-4. Use environment variables for sensitive data
-
-### Frontend
-1. Build for production: `ng build --prod`
-2. Deploy `dist/` folder to any static hosting
-3. Update `environment.prod.ts` with production API URL
 
 ## Contributing
 
