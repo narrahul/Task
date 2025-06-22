@@ -26,9 +26,9 @@ export class ProductFormComponent implements OnInit {
     private productService: ProductService
   ) {
     this.productForm = this.fb.group({
-      sku: ['', Validators.required],
-      name: ['', Validators.required],
-      price: ['', [Validators.required, Validators.min(0)]]
+      sku: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9-_]+$/)]],
+      name: ['', [Validators.required, Validators.maxLength(100)]],
+      price: ['', [Validators.required, Validators.min(0), Validators.max(9999999)]]
     });
   }
 
@@ -48,22 +48,77 @@ export class ProductFormComponent implements OnInit {
         this.existingSKUs = skus;
       },
       (error) => {
-        console.error('Failed to fetch existing SKUs:', error);
+        // Failed to fetch existing SKUs - continue without them
       }
     );
   }
 
-  onFileSelect(event: any): void {
+  async onFileSelect(event: any): Promise<void> {
     const files = event.target.files;
     for (let i = 0; i < files.length; i++) {
-      this.selectedFiles.push(files[i]);
+      const file = files[i];
       
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.imagePreviews.push(e.target.result);
-      };
-      reader.readAsDataURL(files[i]);
+      // Compress image if it's larger than 1MB
+      if (file.size > 1024 * 1024) {
+        const compressedFile = await this.compressImage(file);
+        this.selectedFiles.push(compressedFile);
+        
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.imagePreviews.push(e.target.result);
+        };
+        reader.readAsDataURL(compressedFile);
+      } else {
+        this.selectedFiles.push(file);
+        
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.imagePreviews.push(e.target.result);
+        };
+        reader.readAsDataURL(file);
+      }
     }
+  }
+
+  private compressImage(file: File): Promise<File> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event: any) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d')!;
+          
+          // Calculate new dimensions (max 1200px width/height)
+          let width = img.width;
+          let height = img.height;
+          const maxSize = 1200;
+          
+          if (width > height && width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          } else if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob((blob) => {
+            const compressedFile = new File([blob!], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now()
+            });
+            resolve(compressedFile);
+          }, 'image/jpeg', 0.85);
+        };
+      };
+    });
   }
 
   removeNewImage(index: number): void {
@@ -103,7 +158,6 @@ export class ProductFormComponent implements OnInit {
             this.close.emit(true);
           },
           (error) => {
-            console.error('Error updating product:', error);
             this.isSubmitting = false;
             this.errorMessage = error.error?.error || 'Failed to update product';
           }
@@ -114,7 +168,6 @@ export class ProductFormComponent implements OnInit {
             this.close.emit(true);
           },
           (error) => {
-            console.error('Error creating product:', error);
             this.isSubmitting = false;
             this.errorMessage = error.error?.error || 'Failed to create product';
           }

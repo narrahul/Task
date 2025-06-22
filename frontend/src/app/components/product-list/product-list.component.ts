@@ -16,6 +16,8 @@ export class ProductListComponent implements OnInit {
   currentImageIndex = 0;
   successMessage = '';
   showSuccess = false;
+  isLoading = false;
+  isDeleting = false;
 
   constructor(private productService: ProductService) { }
 
@@ -24,12 +26,15 @@ export class ProductListComponent implements OnInit {
   }
 
   loadProducts(): void {
+    this.isLoading = true;
     this.productService.getAllProducts().subscribe(
       (data) => {
         this.products = data;
+        this.isLoading = false;
       },
       (error) => {
-        console.error('Error loading products:', error);
+        this.isLoading = false;
+        // Handle error silently or show user-friendly message
       }
     );
   }
@@ -46,12 +51,16 @@ export class ProductListComponent implements OnInit {
 
   deleteProduct(id: string): void {
     if (confirm('Are you sure you want to delete this product?')) {
+      this.isDeleting = true;
       this.productService.deleteProduct(id).subscribe(
         () => {
+          this.isDeleting = false;
           this.loadProducts();
+          this.showSuccessMessage('Product deleted successfully!');
         },
         (error) => {
-          console.error('Error deleting product:', error);
+          this.isDeleting = false;
+          alert('Failed to delete product. Please try again.');
         }
       );
     }

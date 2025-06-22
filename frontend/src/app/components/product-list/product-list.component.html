@@ -19,7 +19,13 @@
     </div>
   </div>
 
-  <div class="product-table">
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading products...</p>
+  </div>
+
+  <div class="product-table" *ngIf="!isLoading">
     <table>
       <thead>
         <tr>
@@ -48,8 +54,8 @@
             </div>
           </td>
           <td>
-            <button class="btn btn-secondary" (click)="editProduct(product)">Edit</button>
-            <button class="btn btn-danger" (click)="deleteProduct(product.id!)">Delete</button>
+            <button class="btn btn-secondary" (click)="editProduct(product)" [disabled]="isDeleting">Edit</button>
+            <button class="btn btn-danger" (click)="deleteProduct(product.id!)" [disabled]="isDeleting">Delete</button>
           </td>
         </tr>
         <tr *ngIf="products.length === 0">

@@ -1,30 +1,38 @@
 import { Request, Response } from "express";
 import { ProductService } from "../services/productService";
+import { logger } from "../services/loggerService";
+
+interface UploadResult {
+  success: boolean;
+  url?: string;
+  error?: string;
+  fileName?: string;
+}
 
 export class ProductController {
   private productService = new ProductService();
 
-  async getAllProducts(req: Request, res: Response): Promise<void> {
+  async getAllProducts(req: Request, res: Response): Promise<Response | void> {
     try {
       const products = await this.productService.getAllProducts();
       res.json(products);
     } catch (error: any) {
-      // Error fetching products
+      logger.error("Error fetching products", error);
       res.status(500).json({ error: "Failed to fetch products", details: error.message });
     }
   }
 
-  async getExistingSKUs(req: Request, res: Response): Promise<void> {
+  async getExistingSKUs(req: Request, res: Response): Promise<Response | void> {
     try {
       const skus = await this.productService.getExistingSKUs();
       res.json(skus);
     } catch (error: any) {
-      // Error fetching SKUs
+      logger.error("Error fetching SKUs", error);
       res.status(500).json({ error: "Failed to fetch SKUs", details: error.message });
     }
   }
 
-  async getProductById(req: Request, res: Response): Promise<void> {
+  async getProductById(req: Request, res: Response): Promise<Response | void> {
     try {
       const product = await this.productService.getProductById(req.params.id);
       if (!product) {
@@ -33,25 +41,43 @@ export class ProductController {
       }
       res.json(product);
     } catch (error: any) {
-      // Error fetching product
+      logger.error("Error fetching product", error);
       res.status(500).json({ error: "Failed to fetch product", details: error.message });
     }
   }
 
-  async createProduct(req: Request, res: Response): Promise<void> {
+  async createProduct(req: Request, res: Response): Promise<Response | void> {
     try {
       const images: string[] = [];
       
       if (req.files && Array.isArray(req.files) && req.files.length > 0) {
-        for (const file of req.files) {
+        const uploadPromises = req.files.map(async (file): Promise<UploadResult> => {
           try {
             const imageUrl = await this.productService.uploadImageToSupabase(file);
-            images.push(imageUrl);
-          } catch (uploadError) {
-            // Image upload failed
-            // Continue with other images
+            return { success: true, url: imageUrl };
+          } catch (uploadError: any) {
+            return { success: false, error: uploadError.message, fileName: file.originalname };
           }
+        });
+        
+        const results = await Promise.all(uploadPromises);
+        const failedUploads = results.filter(r => !r.success);
+        
+        if (failedUploads.length > 0 && failedUploads.length === req.files.length) {
+          logger.error('All image uploads failed', failedUploads);
+          res.status(400).json({ 
+            error: "Failed to upload all images", 
+            details: failedUploads.map(f => `${f.fileName}: ${f.error}`).join(', ')
+          });
+          return;
         }
+        
+        // Collect successful uploads
+        results.forEach(result => {
+          if (result.success && result.url) {
+            images.push(result.url);
+          }
+        });
       }
 
       const productData = {
@@ -63,7 +89,7 @@ export class ProductController {
       const product = await this.productService.createProduct(productData);
       res.status(201).json(product);
     } catch (error: any) {
-      // Error creating product
+      logger.error("Error creating product", error);
       
       // Check for duplicate SKU error (PostgreSQL unique violation)
       if (error.code === '23505' || (error.detail && error.detail.includes('sku'))) {
@@ -74,7 +100,7 @@ export class ProductController {
     }
   }
 
-  async updateProduct(req: Request, res: Response): Promise<void> {
+  async updateProduct(req: Request, res: Response): Promise<Response | void> {
     try {
       const { id } = req.params;
       const existingProduct = await this.productService.getProductById(id);
@@ -87,11 +113,33 @@ export class ProductController {
       let images = existingProduct.images || [];
       
       // Handle new image uploads
-      if (req.files && Array.isArray(req.files)) {
-        for (const file of req.files) {
-          const imageUrl = await this.productService.uploadImageToSupabase(file);
-          images.push(imageUrl);
+      if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+        const uploadPromises = req.files.map(async (file): Promise<UploadResult> => {
+          try {
+            const imageUrl = await this.productService.uploadImageToSupabase(file);
+            return { success: true, url: imageUrl };
+          } catch (uploadError: any) {
+            return { success: false, error: uploadError.message, fileName: file.originalname };
+          }
+        });
+        
+        const results = await Promise.all(uploadPromises);
+        const successfulUploads = results.filter(r => r.success);
+        
+        if (successfulUploads.length === 0) {
+          res.status(400).json({ 
+            error: "Failed to upload images", 
+            details: "All image uploads failed. Please try again."
+          });
+          return;
         }
+        
+        // Add successful uploads to images array
+        successfulUploads.forEach(result => {
+          if (result.url) {
+            images.push(result.url);
+          }
+        });
       }
 
       // Handle image deletions
@@ -117,7 +165,7 @@ export class ProductController {
       const product = await this.productService.updateProduct(id, productData);
       res.json(product);
     } catch (error: any) {
-      // Error updating product
+      logger.error("Error updating product", error);
       
       // Check for duplicate SKU error
       if (error.code === '23505' && error.detail?.includes('sku')) {
@@ -128,7 +176,7 @@ export class ProductController {
     }
   }
 
-  async deleteProduct(req: Request, res: Response): Promise<void> {
+  async deleteProduct(req: Request, res: Response): Promise<Response | void> {
     try {
       const success = await this.productService.deleteProduct(req.params.id);
       if (!success) {
@@ -137,7 +185,7 @@ export class ProductController {
       }
       res.status(204).send();
     } catch (error: any) {
-      // Error deleting product
+      logger.error("Error deleting product", error);
       res.status(500).json({ error: "Failed to delete product", details: error.message });
     }
   }

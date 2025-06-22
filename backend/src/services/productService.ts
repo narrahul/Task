@@ -1,6 +1,7 @@
 import { AppDataSource } from "../config/database";
 import { Product } from "../entities/Product";
 import { supabase } from "../config/supabase";
+import { logger } from "./loggerService";
 
 export class ProductService {
   private productRepository = AppDataSource.getRepository(Product);
@@ -72,7 +73,7 @@ export class ProductService {
             await this.deleteImageFromSupabase(fileName);
           }
         } catch (error) {
-          // Failed to delete image from storage
+          logger.error('Failed to delete image from storage', error);
         }
       }
     }
@@ -93,7 +94,7 @@ export class ProductService {
       });
 
     if (error) {
-      // Supabase upload error
+      logger.error('Supabase upload error', error);
       throw new Error(`Failed to upload image: ${error.message}`);
     }
 
@@ -112,7 +113,7 @@ export class ProductService {
       .remove([fileName]);
 
     if (error) {
-      // Supabase delete error
+      logger.error('Supabase delete error', error);
       throw error;
     }
   }

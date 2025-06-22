@@ -16,7 +16,8 @@
         placeholder="Enter unique SKU"
         [class.is-invalid]="productForm.get('sku')?.invalid && productForm.get('sku')?.touched">
       <div class="error-message" *ngIf="productForm.get('sku')?.invalid && productForm.get('sku')?.touched">
-        SKU is required
+        <span *ngIf="productForm.get('sku')?.errors?.['required']">SKU is required</span>
+        <span *ngIf="productForm.get('sku')?.errors?.['pattern']">SKU can only contain letters, numbers, hyphens, and underscores</span>
       </div>
       <div class="sku-hint" *ngIf="existingSKUs.length > 0 && !product">
         <small>Existing SKUs: {{ existingSKUs.join(', ') }}</small>
@@ -32,7 +33,8 @@
         class="form-control"
         [class.is-invalid]="productForm.get('name')?.invalid && productForm.get('name')?.touched">
       <div class="error-message" *ngIf="productForm.get('name')?.invalid && productForm.get('name')?.touched">
-        Product name is required
+        <span *ngIf="productForm.get('name')?.errors?.['required']">Product name is required</span>
+        <span *ngIf="productForm.get('name')?.errors?.['maxlength']">Product name cannot exceed 100 characters</span>
       </div>
     </div>
 
