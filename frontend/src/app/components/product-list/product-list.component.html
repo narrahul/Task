@@ -38,9 +38,10 @@
           <td>
             <div class="image-preview" (click)="openImageModal(product.images)" style="cursor: pointer;">
               <img *ngFor="let image of product.images.slice(0, 3)" 
-                   [src]="image" 
+                   [src]="image + '?width=150&height=150'" 
                    alt="Product image"
-                   class="thumbnail">
+                   class="thumbnail"
+                   loading="lazy">
               <span *ngIf="product.images.length > 3" class="more-images">
                 +{{ product.images.length - 3 }} more
               </span>
@@ -49,7 +50,9 @@
           </td>
           <td>
             <button class="btn btn-secondary" (click)="editProduct(product)" [disabled]="isDeleting">Edit</button>
-            <button class="btn btn-danger" (click)="deleteProduct(product.id!)" [disabled]="isDeleting">Delete</button>
+            <button class="btn btn-danger" (click)="deleteProduct(product.id!)" [disabled]="isDeleting">
+              {{ deletingId === product.id ? 'Deleting...' : 'Delete' }}
+            </button>
           </td>
         </tr>
         <tr *ngIf="products.length === 0">

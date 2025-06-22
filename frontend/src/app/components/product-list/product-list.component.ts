@@ -18,6 +18,7 @@ export class ProductListComponent implements OnInit {
   showSuccess = false;
   isLoading = false;
   isDeleting = false;
+  deletingId: string | null = null;
 
   constructor(private productService: ProductService) { }
 
@@ -49,18 +50,35 @@ export class ProductListComponent implements OnInit {
   deleteProduct(id: string): void {
     if (confirm('Are you sure you want to delete this product?')) {
       this.isDeleting = true;
+      this.deletingId = id;
       this.productService.deleteProduct(id).subscribe(
         () => {
-          this.isDeleting = false;
-          this.loadProducts();
-          this.showSuccessMessage('Product deleted successfully!');
+          // Wait for product list to refresh before showing success message
+          this.loadProductsAfterDelete(() => {
+            this.isDeleting = false;
+            this.deletingId = null;
+            this.showSuccessMessage('Product deleted successfully!');
+          });
         },
         (error) => {
           this.isDeleting = false;
+          this.deletingId = null;
           alert('Failed to delete product. Please try again.');
         }
       );
     }
+  }
+
+  private loadProductsAfterDelete(callback: () => void): void {
+    this.productService.getAllProducts().subscribe(
+      (data) => {
+        this.products = data;
+        callback();
+      },
+      (error) => {
+        callback();
+      }
+    );
   }
 
   onFormClose(success: boolean = false): void {
