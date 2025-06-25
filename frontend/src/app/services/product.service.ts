@@ -15,8 +15,8 @@ export class ProductService {
 
   getAllProducts(): Observable<Product[]> {
     return this.http.get<Product[]>(this.apiUrl).pipe(
-      timeout(30000), // 30 second timeout
-      retry(1) // Retry once on failure
+      timeout(30000),
+      retry(1)
     );
   }
 
@@ -29,13 +29,13 @@ export class ProductService {
 
   createProduct(formData: FormData): Observable<Product> {
     return this.http.post<Product>(this.apiUrl, formData).pipe(
-      timeout(60000) // 60 seconds for uploads
+      timeout(60000)
     );
   }
 
   updateProduct(id: string, formData: FormData): Observable<Product> {
     return this.http.put<Product>(`${this.apiUrl}/${id}`, formData).pipe(
-      timeout(60000) // 60 seconds for uploads
+      timeout(60000)
     );
   }
 

@@ -42,13 +42,11 @@ export class ProductFormComponent implements OnInit {
       this.existingImages = [...this.product.images];
     }
     
-    // Fetch existing SKUs to show as hint
     this.productService.getExistingSKUs().subscribe(
       (skus) => {
         this.existingSKUs = skus;
       },
       (error) => {
-        // Failed to fetch existing SKUs - continue without them
       }
     );
   }
@@ -58,7 +56,6 @@ export class ProductFormComponent implements OnInit {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       
-      // Compress image if it's larger than 1MB
       if (file.size > 1024 * 1024) {
         const compressedFile = await this.compressImage(file);
         this.selectedFiles.push(compressedFile);
@@ -91,7 +88,6 @@ export class ProductFormComponent implements OnInit {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d')!;
           
-          // Calculate new dimensions (max 1200px width/height)
           let width = img.width;
           let height = img.height;
           const maxSize = 1200;
@@ -137,7 +133,7 @@ export class ProductFormComponent implements OnInit {
   onSubmit(): void {
     if (this.productForm.valid && !this.isSubmitting) {
       this.isSubmitting = true;
-      this.errorMessage = ''; // Clear previous errors
+      this.errorMessage = '';
       const formData = new FormData();
       
       formData.append('sku', this.productForm.value.sku);

@@ -32,7 +32,6 @@ export class ProductListComponent implements OnInit {
         this.products = data;
       },
       (error) => {
-        // Handle error silently or show user-friendly message
       }
     );
   }
@@ -53,7 +52,6 @@ export class ProductListComponent implements OnInit {
       this.deletingId = id;
       this.productService.deleteProduct(id).subscribe(
         () => {
-          // Wait for product list to refresh before showing success message
           this.loadProductsAfterDelete(() => {
             this.isDeleting = false;
             this.deletingId = null;
@@ -87,7 +85,6 @@ export class ProductListComponent implements OnInit {
     this.selectedProduct = null;
     this.loadProducts();
     
-    // Show success message if product was created/updated
     if (success) {
       if (wasUpdate) {
         this.showSuccessMessage('Product updated successfully!');

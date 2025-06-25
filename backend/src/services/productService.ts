@@ -10,24 +10,20 @@ export class ProductService {
     const products = await this.productRepository.find({
       select: ['sku']
     });
-    return products.map(p => p.sku);
+    return products.map((p: Product) => p.sku);
   }
 
   async getAllProducts(): Promise<Product[]> {
     const products = await this.productRepository.find();
     
-    // Sort products by SKU with natural ordering (1, 2, 10 instead of 1, 10, 2)
-    return products.sort((a, b) => {
-      // Extract numbers from SKUs if they exist
+    return products.sort((a: Product, b: Product) => {
       const aNum = parseInt(a.sku.match(/\d+/)?.[0] || '0');
       const bNum = parseInt(b.sku.match(/\d+/)?.[0] || '0');
       
-      // If both have numbers, sort numerically
       if (aNum && bNum && !isNaN(aNum) && !isNaN(bNum)) {
         return aNum - bNum;
       }
       
-      // Otherwise, sort alphabetically
       return a.sku.localeCompare(b.sku, undefined, { numeric: true, sensitivity: 'base' });
     });
   }
@@ -41,7 +37,6 @@ export class ProductService {
       const product = this.productRepository.create(productData);
       return await this.productRepository.save(product);
     } catch (error: any) {
-      // PostgreSQL duplicate key error
       if (error.code === '23505') {
         const err = new Error('SKU already exists');
         (err as any).code = '23505';
@@ -61,12 +56,9 @@ export class ProductService {
     const product = await this.getProductById(id);
     if (!product) return false;
 
-    // Delete images from Supabase if they exist
     if (product.images && product.images.length > 0) {
       for (const imageUrl of product.images) {
         try {
-          // Extract file path from Supabase URL
-          // URL format: https://xxx.supabase.co/storage/v1/object/public/bucket-name/file-name
           const urlParts = imageUrl.split('/');
           const fileName = urlParts[urlParts.length - 1];
           if (fileName) {

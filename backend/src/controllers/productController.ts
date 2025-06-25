@@ -51,7 +51,7 @@ export class ProductController {
       const images: string[] = [];
       
       if (req.files && Array.isArray(req.files) && req.files.length > 0) {
-        const uploadPromises = req.files.map(async (file): Promise<UploadResult> => {
+        const uploadPromises = req.files.map(async (file: Express.Multer.File): Promise<UploadResult> => {
           try {
             const imageUrl = await this.productService.uploadImageToSupabase(file);
             return { success: true, url: imageUrl };
@@ -61,19 +61,18 @@ export class ProductController {
         });
         
         const results = await Promise.all(uploadPromises);
-        const failedUploads = results.filter(r => !r.success);
+        const failedUploads = results.filter((r: UploadResult) => !r.success);
         
         if (failedUploads.length > 0 && failedUploads.length === req.files.length) {
           logger.error('All image uploads failed', failedUploads);
           res.status(400).json({ 
             error: "Failed to upload all images", 
-            details: failedUploads.map(f => `${f.fileName}: ${f.error}`).join(', ')
+            details: failedUploads.map((f: UploadResult) => `${f.fileName}: ${f.error}`).join(', ')
           });
           return;
         }
         
-        // Collect successful uploads
-        results.forEach(result => {
+        results.forEach((result: UploadResult) => {
           if (result.success && result.url) {
             images.push(result.url);
           }
@@ -91,7 +90,6 @@ export class ProductController {
     } catch (error: any) {
       logger.error("Error creating product", error);
       
-      // Check for duplicate SKU error (PostgreSQL unique violation)
       if (error.code === '23505' || (error.detail && error.detail.includes('sku'))) {
         res.status(400).json({ error: "SKU already exists. Please use a unique SKU." });
       } else {
@@ -112,9 +110,8 @@ export class ProductController {
 
       let images = existingProduct.images || [];
       
-      // Handle new image uploads
       if (req.files && Array.isArray(req.files) && req.files.length > 0) {
-        const uploadPromises = req.files.map(async (file): Promise<UploadResult> => {
+        const uploadPromises = req.files.map(async (file: Express.Multer.File): Promise<UploadResult> => {
           try {
             const imageUrl = await this.productService.uploadImageToSupabase(file);
             return { success: true, url: imageUrl };
@@ -124,7 +121,7 @@ export class ProductController {
         });
         
         const results = await Promise.all(uploadPromises);
-        const successfulUploads = results.filter(r => r.success);
+        const successfulUploads = results.filter((r: UploadResult) => r.success);
         
         if (successfulUploads.length === 0) {
           res.status(400).json({ 
@@ -134,15 +131,13 @@ export class ProductController {
           return;
         }
         
-        // Add successful uploads to images array
-        successfulUploads.forEach(result => {
+        successfulUploads.forEach((result: UploadResult) => {
           if (result.url) {
             images.push(result.url);
           }
         });
       }
 
-      // Handle image deletions
       if (req.body.imagesToDelete) {
         const imagesToDelete = JSON.parse(req.body.imagesToDelete);
         for (const imageUrl of imagesToDelete) {
@@ -167,7 +162,6 @@ export class ProductController {
     } catch (error: any) {
       logger.error("Error updating product", error);
       
-      // Check for duplicate SKU error
       if (error.code === '23505' && error.detail?.includes('sku')) {
         res.status(400).json({ error: "SKU already exists. Please use a unique SKU." });
       } else {

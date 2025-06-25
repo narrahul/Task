@@ -4,7 +4,6 @@ import { Product } from "../entities/Product";
 
 dotenv.config();
 
-// Supabase always requires SSL
 const isSupabase = process.env.DB_HOST?.includes('supabase.com');
 
 export const AppDataSource = new DataSource({
